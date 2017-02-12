@@ -20,25 +20,26 @@ IGNORE '\n' + '\r' + '\t'
 
 PRODUCTIONS
 	AdvCalc 								(. ASTExp exp; .)
-	= { CExp<out exp>						(. try {
+	= CExp<out exp>				(. try {
 											   		ASTExp res = aci.eval(exp);
-													System.out.println(" " + res);
-											   } catch (Exception e) {
-													System.err.println(" Error: " + e.getMessage());
-												 }
-											.)
-	} EOF
+													  System.out.println(" " + exp);
+											      } catch (Exception e) {
+													    System.err.println(" Error: " + e.getMessage());
+												    }
+											    .)
+	EOF
 	.
 	CExp<out ASTExp v> 						(. v = null; .)
 	= Def | Exp.
 
 	Def = "def" ident ( "(" ParamNames ")" | ) "=" Exp.
 	ParamNames = ident { "," ident }.
-	Exp = T { ( "+" T | ";" T ) }.
+	Exp = T { ( "+" T | "-" T ) }.
 	T = U { ( "*" U | "/" U | "%" U ) }.
 	U = ("-" F | F ).
-	F = number | VarOrFunc | IFExp | "(" Exp ")" .
+	F = number | VarOrFunc | IFExp | "(" Exp ")" | "{" SeqExp "}" .
 	VarOrFunc = ident ( "(" Params ")" | ).
+	SeqExp = Exp { ";" Exp } .
 	Params = Exp { "," Exp }.
 	IFExp = "if" ExpL "then" Exp "else" Exp.
 	ExpL = Exp OpRel Exp.
