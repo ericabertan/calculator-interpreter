@@ -1,4 +1,5 @@
 import java.lang.Exception;
+import java.util.ArrayList;
 
 COMPILER AdvCalc
 
@@ -20,29 +21,206 @@ IGNORE '\n' + '\r' + '\t'
 
 PRODUCTIONS
 	AdvCalc 								(. ASTExp exp; .)
-	= CExp<out exp>				(. try {
-											   		ASTExp res = aci.eval(exp);
-													  System.out.println(" " + exp);
-											      } catch (Exception e) {
-													    System.err.println(" Error: " + e.getMessage());
-												    }
-											    .)
+	= CExp<out exp>					(. try {
+											   			ASTExp res = aci.eval(exp);
+															System.out.println(" " + res.valor);
+											   		} catch (Exception e) {
+															System.err.println(" Error: " + e.getMessage());
+												 		}
+											.)
 	EOF
 	.
-	CExp<out ASTExp v> 						(. v = null; .)
-	= Def | Exp.
+	// ----------------------------------------
+	CExp<out ASTExp v> 					(. v = null; ASTExp exp; .)
+	= Def<out exp>							(. v = exp; .)
+	| Exp<out exp> 							(. v = exp; .)
+	.
 
-	Def = "def" ident ( "(" ParamNames ")" | ) "=" Exp.
+	Def<out ASTExp def> 				(.
+																Objeto objeto = null;
+																def = new ASTExp();
+																ASTExp exp;
+	 														.)
+  =
+	"def" ident									(.
+																String identificador = t.val;
+																ArrayList<ASTExp> listaParametros;
+															.)
+	(
+	"(" 												// Definir funcao e escopo
+	ParamNames
+	")"
+	|
+	)
+	"="
+	Exp<out exp>							(.
+															objeto.expressao = exp;
+															if(objeto.tipo == "FUNCAO"){
+																//aci = aci.escopoAtual.escopoSuperior;
+															}
+														.)
+	.
 	ParamNames = ident { "," ident }.
-	Exp = T { ( "+" T | "-" T ) }.
-	T = U { ( "*" U | "/" U | "%" U ) }.
-	U = ("-" F | F ).
-	F = number | VarOrFunc | IFExp | "(" Exp ")" | "{" SeqExp "}" .
-	VarOrFunc = ident ( "(" Params ")" | ).
-	SeqExp = Exp { ";" Exp } .
-	Params = Exp { "," Exp }.
-	IFExp = "if" ExpL "then" Exp "else" Exp.
-	ExpL = Exp OpRel Exp.
+	// ----------------------------------------
+	Exp<out ASTExp exp>				(.
+															exp = null;
+															ASTExp t;
+															ASTExp operando;
+	 													.)
+	=
+		T<out t>								(. exp = t; .)
+		{
+														(.
+															operando = exp;
+															exp = new ASTExp();
+															ASTExp node = new ASTExp();
+															node.tipo = "OPERAÇÃO";
+															node.operando1 = operando;
+															t = node;
+														.)
+			(
+			"+" T<out t>					(.
+															exp.operando2 = t;
+															exp.operacao = "+";
+														.)
+			| "-" T<out t>				(.
+															exp.operando2 = t;
+															exp.operacao = "-";
+														.)
+			)
+		}
+		.
+	// ----------------------------------------
+	T<out ASTExp t> 					(.
+															t = null;
+															ASTExp u;
+															ASTExp operando;
+														.)
+	=
+		U<out u>								(. t = u; .)
+		{												(.
+															operando = t;
+															t = new ASTExp();
+															ASTExp node = new ASTExp();
+															node.tipo = "OPERACAO";
+															node.operando1 = operando;
+															t = node;
+														.)
+			(
+			"*" U<out u>					(.
+															t.operando2 = u;
+															t.operacao = "*";
+														.)
+			| "/" U<out u>				(.
+															t.operando2 = u;
+															t.operacao = "/";
+														.)
+			| "%" U<out u>				(.
+															t.operando2 = u;
+															t.operacao = "%";
+														.)
+			)
+		}
+		.
+  // ----------------------------------------
+	U<out ASTExp u> 					(.
+															u = null;
+															ASTExp f;
+														.)
+	=
+		(
+			"-" F<out f> 					(.
+															ASTExp node = new ASTExp();
+															u = new ASTExp();
+															node.tipo = "SINAL";
+															node.operando1 = f;
+															u = node;
+			 											.)
+
+			| F<out f> 						(.
+			 												u = f;
+							 							.)
+		)
+		.
+	// ----------------------------------------
+	F<out ASTExp f> 					(.
+																f = null;
+																ASTExp exp;
+														.)
+	=
+		number 									(.
+															ASTExp node = new ASTExp();
+															f = new ASTExp();
+															node.tipo = "LITERAL_DOUBLE";
+															node.valor = Double.parseDouble(t.val);
+															f = node;
+														.)
+
+		| VarOrFunc<out exp>    (. f = exp; .)
+		| IFExp<out exp>				(. f = exp; .)
+		| "(" Exp<out exp> ")"  (. f = exp; .)
+		| SeqExp<out exp>				(. f = exp; .)
+	.
+	// ----------------------------------------
+	SeqExp<out ASTExp seq> 		(.
+															seq = new ASTExp();
+															seq.tipo = "SEQUENCIA_EXPRESSOES";
+															seq.sequenciaExpressoes = new ArrayList<ASTExp>();
+															ASTExp exp;
+															Objeto objeto = new Objeto();
+															// TO-DO implementar sequencia de expressoes
+															//objeto.novaSequenciaExpressoes();
+															// TO-DO implementar escopo atual
+														.)
+	=
+	"{"
+	CExp<out exp>							(. seq.sequenciaExpressoes.add(exp); .)
+	{ ";" CExp<out exp>				(. seq.sequenciaExpressoes.add(exp); .)
+ 	}
+	"}"												(. this.aci.escopoAtual = aci.escopoAtual.escopoSuperior; .)
+	.
+	// ----------------------------------------
+	VarOrFunc<out ASTExp varFunc> (.
+																	varFunc = null;
+																	ASTExp exp;
+																	ArrayList<ASTExp> params;
+	 															.)
+	= ident 											(. String valorVariavel = t.val; .)
+	( "(" Params<out params> ")" | ).
+	// ----------------------------------------
+	Params<out ArrayList<ASTExp> parametros>	(.
+																							parametros = new ArrayList<ASTExp>();
+																							ASTExp exp;
+																						.)
+	= Exp<out exp>							(. parametros.add(exp); .)
+	{ "," Exp<out exp>					(. parametros.add(exp); .)
+	}
+	.
+	// ----------------------------------------
+	IFExp<out ASTExp ifCond> 				(.
+																ASTExp exp;
+	 															ASTExp condicao;
+																ifCond = new ASTExp();
+																ifCond.tipo = "CONDICAO";
+															.)
+	=
+	"if" ExpL<out condicao>			(. ifCond.condicao = condicao; .)
+	"then" Exp<out exp>					(. ifCond.expressaoThen = exp; .)
+	"else" Exp<out exp>					(. ifCond.expressaoElse = exp; .)
+	.
+	// ----------------------------------------
+	ExpL<out ASTExp expl> 			(.
+																ASTExp exp;
+																String operacao = "";
+																expl = new ASTExp();
+																expl.tipo = "OPERACAO";
+															.)
+	=
+	Exp<out exp>								(. expl.operando1 = exp; .)
+	OpRel/*<out operacao>					(. expl.operacao = operacao; .)*/
+	Exp<out exp>								(. expl.operando2 = exp; .)
+	.
+	// ----------------------------------------
 	OpRel = ">" | ">=" | "<" | "&<=" | "=" | "!=".
 
 END AdvCalc.

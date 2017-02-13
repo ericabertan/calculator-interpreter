@@ -6,7 +6,7 @@ import java.io.InputStreamReader;
 public class Interpret {
 
 	public static void main(String argv[]) {
-		//Interpreter aci = new Interpreter();
+		Interpreter aci = new Interpreter();
 		String str;
 		System.out.println("Calculadora Avancada (digite 's' para sair)");
 		System.out.println("Exemplos de expressoes: ");
@@ -28,7 +28,7 @@ public class Interpret {
 				InputStream stream = new ByteArrayInputStream(str.getBytes("UTF-8"));
 				Scanner s = new Scanner(stream);
 				Parser p = new Parser(s);
-				//p.setInterpreter(aci);
+				p.setInterpreter(aci);
 				p.Parse();
 				} catch(IOException e) {
 					e.printStackTrace();

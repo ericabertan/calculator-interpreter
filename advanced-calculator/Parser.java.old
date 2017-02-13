@@ -1,6 +1,7 @@
 
 
 import java.lang.Exception;
+import java.util.ArrayList;
 
 
 
@@ -92,7 +93,7 @@ public class Parser {
 		exp = CExp();
 		try {
 		ASTExp res = aci.eval(exp);
-		System.out.println(" " + exp);
+		System.out.println(" " + res);
 		} catch (Exception e) {
 		System.err.println(" Error: " + e.getMessage());
 		}
@@ -102,18 +103,28 @@ public class Parser {
 
 	ASTExp  CExp() {
 		ASTExp  v;
-		v = null; 
+		v = null; ASTExp exp; 
 		if (la.kind == 3) {
-			Def();
+			exp = Def();
+			v = exp; 
 		} else if (StartOf(1)) {
-			Exp();
+			exp = Exp();
+			v = exp; 
 		} else SynErr(25);
 		return v;
 	}
 
-	void Def() {
+	ASTExp  Def() {
+		ASTExp  def;
+		Objeto objeto = null;
+		def = new ASTExp();
+		ASTExp exp;
+		
 		Expect(3);
 		Expect(2);
+		String identificador = t.val;
+		ArrayList<ASTExp> listaParametros;
+		
 		if (la.kind == 4) {
 			Get();
 			ParamNames();
@@ -121,20 +132,46 @@ public class Parser {
 		} else if (la.kind == 6) {
 		} else SynErr(26);
 		Expect(6);
-		Exp();
+		exp = Exp();
+		objeto.expressao = exp;
+		if(objeto.tipo == "FUNCAO"){
+		//aci = aci.escopoAtual.escopoSuperior;
+		}
+		
+		return def;
 	}
 
-	void Exp() {
-		T();
+	ASTExp  Exp() {
+		ASTExp  exp;
+		exp = null;
+		ASTExp t;
+		ASTExp operando;
+		
+		t = T();
+		exp = t; 
 		while (la.kind == 8 || la.kind == 9) {
+			operando = exp;
+			exp = new ASTExp();
+			ASTExp node = new ASTExp();
+			node.tipo = "OPERAÃÃO";
+			node.operando1 = operando;
+			t = node;
+			
 			if (la.kind == 8) {
 				Get();
-				T();
+				t = T();
+				exp.operando2 = t;
+				exp.operacao = "+";
+				
 			} else {
 				Get();
-				T();
+				t = T();
+				exp.operando2 = t;
+				exp.operacao = "-";
+				
 			}
 		}
+		return exp;
 	}
 
 	void ParamNames() {
@@ -145,88 +182,186 @@ public class Parser {
 		}
 	}
 
-	void T() {
-		U();
+	ASTExp  T() {
+		ASTExp  t;
+		t = null;
+		ASTExp u;
+		ASTExp operando;
+		
+		u = U();
+		t = u; 
 		while (la.kind == 10 || la.kind == 11 || la.kind == 12) {
+			operando = t;
+			t = new ASTExp();
+			ASTExp node = new ASTExp();
+			node.tipo = "OPERACAO";
+			node.operando1 = operando;
+			t = node;
+			
 			if (la.kind == 10) {
 				Get();
-				U();
+				u = U();
+				t.operando2 = u;
+				t.operacao = "*";
+				
 			} else if (la.kind == 11) {
 				Get();
-				U();
+				u = U();
+				t.operando2 = u;
+				t.operacao = "/";
+				
 			} else {
 				Get();
-				U();
+				u = U();
+				t.operando2 = u;
+				t.operacao = "%";
+				
 			}
 		}
+		return t;
 	}
 
-	void U() {
+	ASTExp  U() {
+		ASTExp  u;
+		u = null;
+		ASTExp f;
+		
 		if (la.kind == 9) {
 			Get();
-			F();
+			f = F();
+			ASTExp node = new ASTExp();
+			u = new ASTExp();
+			node.tipo = "SINAL";
+			node.operando1 = f;
+			u = node;
+			
 		} else if (StartOf(2)) {
-			F();
+			f = F();
+			u = f;
+			
 		} else SynErr(27);
+		return u;
 	}
 
-	void F() {
+	ASTExp  F() {
+		ASTExp  f;
+		f = null;
+		ASTExp exp;
+		
 		if (la.kind == 1) {
 			Get();
+			ASTExp node = new ASTExp();
+			f = new ASTExp();
+			node.tipo = "LITERAL_DOUBLE";
+			node.valor = Double.parseDouble(t.val);
+			f = node;
+			
 		} else if (la.kind == 2) {
-			VarOrFunc();
+			exp = VarOrFunc();
+			f = exp; 
 		} else if (la.kind == 16) {
-			IFExp();
+			exp = IFExp();
+			f = exp; 
 		} else if (la.kind == 4) {
 			Get();
-			Exp();
+			exp = Exp();
 			Expect(5);
+			f = exp; 
 		} else if (la.kind == 13) {
-			Get();
-			SeqExp();
-			Expect(14);
+			exp = SeqExp();
+			f = exp; 
 		} else SynErr(28);
+		return f;
 	}
 
-	void VarOrFunc() {
+	ASTExp  VarOrFunc() {
+		ASTExp  varFunc;
+		varFunc = null;
+		ASTExp exp;
+		ArrayList<ASTExp> params;
+		
 		Expect(2);
+		String valorVariavel = t.val; 
 		if (la.kind == 4) {
 			Get();
-			Params();
+			params = Params();
 			Expect(5);
 		} else if (StartOf(3)) {
 		} else SynErr(29);
+		return varFunc;
 	}
 
-	void IFExp() {
+	ASTExp  IFExp() {
+		ASTExp  ifCond;
+		ASTExp exp;
+		ASTExp condicao;
+		ifCond = new ASTExp();
+		ifCond.tipo = "CONDICAO";
+		
 		Expect(16);
-		ExpL();
+		condicao = ExpL();
+		ifCond.condicao = condicao; 
 		Expect(17);
-		Exp();
+		exp = Exp();
+		ifCond.expressaoThen = exp; 
 		Expect(18);
-		Exp();
+		exp = Exp();
+		ifCond.expressaoElse = exp; 
+		return ifCond;
 	}
 
-	void SeqExp() {
-		Exp();
-		while (la.kind == 15) {
+	ASTExp  SeqExp() {
+		ASTExp  seq;
+		seq = new ASTExp();
+		seq.tipo = "SEQUENCIA_EXPRESSOES";
+		seq.sequenciaExpressoes = new ArrayList<ASTExp>();
+		ASTExp exp;
+		Objeto objeto = new Objeto();
+		// TO-DO implementar sequencia de expressoes
+		//objeto.novaSequenciaExpressoes();
+		// TO-DO implementar escopo atual
+		
+		Expect(13);
+		exp = CExp();
+		seq.sequenciaExpressoes.add(exp); 
+		while (la.kind == 14) {
 			Get();
-			Exp();
+			exp = CExp();
+			seq.sequenciaExpressoes.add(exp); 
 		}
+		Expect(15);
+		this.aci.escopoAtual = aci.escopoAtual.escopoSuperior; 
+		return seq;
 	}
 
-	void Params() {
-		Exp();
+	ArrayList<ASTExp>  Params() {
+		ArrayList<ASTExp>  parametros;
+		parametros = new ArrayList<ASTExp>();
+		ASTExp exp;
+		
+		exp = Exp();
+		parametros.add(exp); 
 		while (la.kind == 7) {
 			Get();
-			Exp();
+			exp = Exp();
+			parametros.add(exp); 
 		}
+		return parametros;
 	}
 
-	void ExpL() {
-		Exp();
+	ASTExp  ExpL() {
+		ASTExp  expl;
+		ASTExp exp;
+		String operacao = "";
+		expl = new ASTExp();
+		expl.tipo = "OPERACAO";
+		
+		exp = Exp();
+		expl.operando1 = exp; 
 		OpRel();
-		Exp();
+		exp = Exp();
+		expl.operando2 = exp; 
+		return expl;
 	}
 
 	void OpRel() {
@@ -313,8 +448,8 @@ class Errors {
 			case 11: s = "\"/\" expected"; break;
 			case 12: s = "\"%\" expected"; break;
 			case 13: s = "\"{\" expected"; break;
-			case 14: s = "\"}\" expected"; break;
-			case 15: s = "\";\" expected"; break;
+			case 14: s = "\";\" expected"; break;
+			case 15: s = "\"}\" expected"; break;
 			case 16: s = "\"if\" expected"; break;
 			case 17: s = "\"then\" expected"; break;
 			case 18: s = "\"else\" expected"; break;
