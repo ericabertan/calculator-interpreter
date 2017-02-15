@@ -169,7 +169,7 @@ public class Parser {
 			ASTExp node = new ASTExp();
 			node.tipo = "OPERACAO";
 			node.operando1 = operando;
-			t = node;
+			exp = node;
 			
 			if (la.kind == 8) {
 				Get();

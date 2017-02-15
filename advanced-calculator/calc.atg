@@ -20,14 +20,14 @@ TOKENS
 IGNORE '\n' + '\r' + '\t'
 
 PRODUCTIONS
-	AdvCalc 								(. ASTExp exp; .)
-	= CExp<out exp>					(. try {
-											   			ASTExp res = aci.eval(exp);
-															System.out.println(" " + res.valor);
-											   		} catch (Exception e) {
-															System.err.println(" Error: " + e.getMessage());
-												 		}
-											.)
+	AdvCalc 										(. ASTExp exp; .)
+	= CExp<out exp>							(. try {
+											   					ASTExp res = aci.eval(exp);
+																	System.out.println(" " + res.valor);
+											   				} catch (Exception e) {
+																	System.err.println(" Error: " + e.getMessage());
+												 				}
+															.)
 	EOF
 	.
 	// ----------------------------------------
@@ -101,7 +101,7 @@ PRODUCTIONS
 															ASTExp node = new ASTExp();
 															node.tipo = "OPERACAO";
 															node.operando1 = operando;
-															t = node;
+															exp = node;
 														.)
 			(
 			"+" T<out t>					(.
@@ -246,7 +246,7 @@ PRODUCTIONS
 	}
 	.
 	// ----------------------------------------
-	IFExp<out ASTExp ifCond> 				(.
+	IFExp<out ASTExp ifCond> 		(.
 																ASTExp exp;
 	 															ASTExp condicao;
 																ifCond = new ASTExp();

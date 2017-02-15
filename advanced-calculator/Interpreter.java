@@ -137,9 +137,6 @@ class Interpreter {
 			}
 		} else if (exp.tipo == "OPERACAO") {
 			switch(exp.operacao){
-				case "+":
-					System.out.println("Somando ...");
-					return new ASTExp(eval(exp.operando1).valor + eval(exp.operando2).valor);
 				case ">":
 					return new ASTExp((eval(exp.operando1).valor > eval(exp.operando2).valor)? 1 : 0);
 				case "<":
@@ -152,6 +149,16 @@ class Interpreter {
 					return new ASTExp((eval(exp.operando1).valor <= eval(exp.operando2).valor)? 1 : 0);
 				case "!=":
 					return new ASTExp((eval(exp.operando1).valor != eval(exp.operando2).valor)? 1 : 0);
+				case "+":
+					return new ASTExp(eval(exp.operando1).valor + eval(exp.operando2).valor);
+				case "-":
+					return new ASTExp(eval(exp.operando1).valor - eval(exp.operando2).valor);
+				case "*":
+					return new ASTExp(eval(exp.operando1).valor * eval(exp.operando2).valor);
+				case "/":
+					return new ASTExp(eval(exp.operando1).valor / eval(exp.operando2).valor);
+				case "%":
+					return new ASTExp(eval(exp.operando1).valor % eval(exp.operando2).valor);
 			}
 		}
 
