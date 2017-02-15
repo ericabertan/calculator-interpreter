@@ -60,6 +60,7 @@ class Objeto {
 		novaFuncao.tipo = "FUNCAO";
 		novaFuncao.identificador = identificador;
 		novaFuncao.escopo = new Escopo("fun:" + identificador);
+		//System.out.println("func " + novaFuncao.identificador + " = " + novaFuncao.tipo);
 		return novaFuncao;
 	}
 }
@@ -84,10 +85,10 @@ class Escopo {
 
 	public Objeto buscar(String identificador) {
 		for (Objeto objeto: listaObjetos) {
-			System.out.println(" " + objeto.identificador + " - " + objeto.tipo + " - " + objeto.valor);
+			//System.out.println(" " + objeto.identificador + " - " + objeto.tipo + " - " + objeto.valor);
 			if(objeto.tipo != "CLOSURE" &&
 				 objeto.identificador.equals(identificador)) {
-					 System.out.println("Oi " + objeto.identificador);
+					 //System.out.println("Oi " + objeto.identificador);
 					 return objeto;
 				 }
 			if(escopoSuperior != null) {
@@ -110,7 +111,7 @@ class Interpreter {
 
 	public ASTExp eval(ASTExp exp) throws Exception {
 
-		System.out.println(exp.tipo);
+		//System.out.println(exp.tipo);
 		if(exp.tipo == "LITERAL_DOUBLE") {
 			return new ASTExp(exp.valor);
 		} else if(exp.tipo == "VARIAVEL") {
@@ -127,7 +128,7 @@ class Interpreter {
 			for (int i = 0; i < exp.paramChamadaFuncao.size(); i++) {
 				exp.paramChamadaFuncaoVar.get(i).valor = eval(exp.paramChamadaFuncao.get(i)).valor;
 			}
-			System.out.println("Valor: " + (exp.funcao.expressao).valor);
+			//System.out.println("Valor: " + (exp.funcao.expressao).valor);
 			return new ASTExp(eval(exp.funcao.expressao).valor);
 		} else if (exp.tipo == "CONDICAO") {
 			if(eval(exp.condicao).valor != 0) {
@@ -161,17 +162,6 @@ class Interpreter {
 					return new ASTExp(eval(exp.operando1).valor % eval(exp.operando2).valor);
 			}
 		}
-
-
-		/*if (exp.tipo == "SOMA") {
-			return new ASTExp(eval(exp.op1) + eval(exp.op2));
-		} else (exp.tipo == VARIAVEL) {
-			double k = exp.var.valor;
-			return new ASTExp(k);
-		} else (exp.tipo == INTEIRO_LITERAL) {
-			return new ASTExp(exp.valor);
-		} else (exp.tipo*/
-
 		return null;
 	}
 }

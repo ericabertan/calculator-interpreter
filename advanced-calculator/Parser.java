@@ -313,10 +313,21 @@ public class Parser {
 			if (varFunc.variavel == null) {
 			System.out.println(" Error: '" + valorVariavel + "' nao definido.");
 			} else if (varFunc.variavel.tipo != "FUNCAO") {
-			//System.out.println(" Error: '" + id + "' nao nomeia uma variavel.");
+			System.out.println(" Error: Funcao nao definida");
 			}
 			
 			params = Params();
+			if (varFunc.funcao != null) {
+			varFunc.paramChamadaFuncao = params;
+			varFunc.paramChamadaFuncaoVar = new ArrayList<Objeto>();
+			for (int i = 0; i < varFunc.funcao.paramNames.size(); i++) {
+				varFunc.paramChamadaFuncaoVar.add(varFunc.funcao.escopo.buscar(varFunc.funcao.paramNames.get(i)));
+			}
+			if (varFunc.paramChamadaFuncaoVar.size() != varFunc.funcao.paramNames.size()) {
+				System.out.println(" Error: Observe os parametros.");
+			}
+			}
+			
 			Expect(5);
 		} else if (StartOf(3)) {
 			varFunc = new ASTExp();
@@ -325,7 +336,7 @@ public class Parser {
 			if (varFunc.variavel == null) {
 			System.out.println(" Error: '" + valorVariavel + "' nao definido.");
 			} else if (varFunc.variavel.tipo != "VARIAVEL") {
-			//System.out.println(" Error: '" + id + "' nao nomeia uma variavel.");
+			System.out.println(" Error: Variavel nao definida");
 			}
 			
 		} else SynErr(29);

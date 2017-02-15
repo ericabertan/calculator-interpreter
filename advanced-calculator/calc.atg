@@ -199,10 +199,10 @@ PRODUCTIONS
 														.)
 	=
 	"{"
-	CExp<out exp>							(. seq.sequenciaExpressoes.add(exp); .)
-	{ ";" CExp<out exp>				(. seq.sequenciaExpressoes.add(exp); .)
+	CExp<out exp>									(. seq.sequenciaExpressoes.add(exp); .)
+	{ ";" CExp<out exp>						(. seq.sequenciaExpressoes.add(exp); .)
  	}
-	"}"												(. this.aci.escopoAtual = aci.escopoAtual.escopoSuperior; .)
+	"}"														(. this.aci.escopoAtual = aci.escopoAtual.escopoSuperior; .)
 	.
 	// ----------------------------------------
 	VarOrFunc<out ASTExp varFunc> (.
@@ -219,10 +219,21 @@ PRODUCTIONS
 																	if (varFunc.variavel == null) {
 																		System.out.println(" Error: '" + valorVariavel + "' nao definido.");
 																	} else if (varFunc.variavel.tipo != "FUNCAO") {
-																		//System.out.println(" Error: '" + id + "' nao nomeia uma variavel.");
+																		System.out.println(" Error: Funcao nao definida");
 																	}
 																.)
-	Params<out params>
+	Params<out params>						(.
+																	if (varFunc.funcao != null) {
+																		varFunc.paramChamadaFuncao = params;
+																		varFunc.paramChamadaFuncaoVar = new ArrayList<Objeto>();
+																		for (int i = 0; i < varFunc.funcao.paramNames.size(); i++) {
+																			varFunc.paramChamadaFuncaoVar.add(varFunc.funcao.escopo.buscar(varFunc.funcao.paramNames.get(i)));
+																		}
+																		if (varFunc.paramChamadaFuncaoVar.size() != varFunc.funcao.paramNames.size()) {
+																			System.out.println(" Error: Observe os parametros.");
+																		}
+																	}
+																.)
 	")"
 	| 														(.
 																	varFunc = new ASTExp();
@@ -231,7 +242,7 @@ PRODUCTIONS
 																	if (varFunc.variavel == null) {
 																		System.out.println(" Error: '" + valorVariavel + "' nao definido.");
 																	} else if (varFunc.variavel.tipo != "VARIAVEL") {
-																		//System.out.println(" Error: '" + id + "' nao nomeia uma variavel.");
+																		System.out.println(" Error: Variavel nao definida");
 																	}
 																.)
 	)
