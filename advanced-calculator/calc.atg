@@ -215,11 +215,11 @@ PRODUCTIONS
 	( "(" Params<out params> ")"
 	| 														(.
 																	varFunc = new ASTExp();
-																	varFunc.tipo = "DEFINICAO_VARIAVEL";
+																	varFunc.tipo = "VARIAVEL";
 																	varFunc.variavel = aci.escopoAtual.buscar(valorVariavel);
 																	if (varFunc.variavel == null) {
 																		System.out.println(" Error: '" + valorVariavel + "' nao definido.");
-																	} else if (varFunc.variavel.tipo != "DEFINICAO_VARIAVEL") {
+																	} else if (varFunc.variavel.tipo != "VARIAVEL") {
 																		//System.out.println(" Error: '" + id + "' nao nomeia uma variavel.");
 																	}
 																.)

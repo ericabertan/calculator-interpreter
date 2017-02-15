@@ -45,7 +45,7 @@ class Objeto {
 
 	public static Objeto addVariavel(String identificador) {
 		Objeto novaVariavel = new Objeto();
-		novaVariavel.tipo = "DEFINICAO_VARIAVEL";
+		novaVariavel.tipo = "VARIAVEL";
 		novaVariavel.valor = 0;
 		novaVariavel.identificador = identificador;
 		//System.out.println(novaVariavel.identificador + " = " + novaVariavel.valor);
@@ -106,12 +106,15 @@ class Interpreter {
 	public ASTExp eval(ASTExp exp) throws Exception {
 
 		System.out.println(exp.tipo);
-		if(exp.tipo == "LITERAL_DOUBLE")
+		if(exp.tipo == "LITERAL_DOUBLE") {
 			return new ASTExp(exp.valor);
-		else if(exp.tipo == "DEFINICAO_VARIAVEL") {
+		} else if(exp.tipo == "VARIAVEL") {
 			if(exp.variavel == null)
 				return new ASTExp(0);
 			else return new ASTExp(exp.variavel.valor);
+		} else if (exp.tipo == "DEFINICAO_VARIAVEL") {
+			exp.variavel.valor = eval(exp.variavel.expressao).valor;
+			return new ASTExp(exp.variavel.valor);
 		}
 
 
