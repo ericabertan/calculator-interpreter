@@ -17,11 +17,14 @@ class ASTExp {
 	public ArrayList<ASTExp> sequenciaExpressoes;
 
 	public ASTExp condicao;
-	public ASTExp expressaoThen;
-	public ASTExp expressaoElse;
+	public ASTExp condicaoThen;
+	public ASTExp condicaoElse;
 
 	public Objeto variavel;
 	public Objeto funcao;
+
+	public ArrayList<ASTExp> paramChamadaFuncao;
+	public ArrayList<Objeto> paramChamadaFuncaoVar;
 
 	public ASTExp() {
 
@@ -54,7 +57,8 @@ class Objeto {
 
 	public static Objeto addFuncao(String identificador) {
 		Objeto novaFuncao = new Objeto();
-		novaFuncao.tipo = "CLOSURE";
+		novaFuncao.tipo = "FUNCAO";
+		novaFuncao.identificador = identificador;
 		novaFuncao.escopo = new Escopo("fun:" + identificador);
 		return novaFuncao;
 	}
@@ -80,9 +84,10 @@ class Escopo {
 
 	public Objeto buscar(String identificador) {
 		for (Objeto objeto: listaObjetos) {
-			//System.out.println(" " + objeto.identificador + " - " + objeto.tipo + " - " + objeto.valor);
+			System.out.println(" " + objeto.identificador + " - " + objeto.tipo + " - " + objeto.valor);
 			if(objeto.tipo != "CLOSURE" &&
 				 objeto.identificador.equals(identificador)) {
+					 System.out.println("Oi " + objeto.identificador);
 					 return objeto;
 				 }
 			if(escopoSuperior != null) {
@@ -115,6 +120,39 @@ class Interpreter {
 		} else if (exp.tipo == "DEFINICAO_VARIAVEL") {
 			exp.variavel.valor = eval(exp.variavel.expressao).valor;
 			return new ASTExp(exp.variavel.valor);
+		} else if (exp.tipo == "DEFINICAO_FUNCAO") {
+			return exp;
+		} else if (exp.tipo == "CHAMADA_FUNCAO") {
+			System.out.println("Valor: ");
+			for (int i = 0; i < exp.paramChamadaFuncao.size(); i++) {
+				exp.paramChamadaFuncaoVar.get(i).valor = eval(exp.paramChamadaFuncao.get(i)).valor;
+			}
+			System.out.println("Valor: " + (exp.funcao.expressao).valor);
+			return new ASTExp(eval(exp.funcao.expressao).valor);
+		} else if (exp.tipo == "CONDICAO") {
+			if(eval(exp.condicao).valor != 0) {
+				return new ASTExp(eval(exp.condicaoThen).valor);
+			} else {
+				return new ASTExp(eval(exp.condicaoElse).valor);
+			}
+		} else if (exp.tipo == "OPERACAO") {
+			switch(exp.operacao){
+				case "+":
+					System.out.println("Somando ...");
+					return new ASTExp(eval(exp.operando1).valor + eval(exp.operando2).valor);
+				case ">":
+					return new ASTExp((eval(exp.operando1).valor > eval(exp.operando2).valor)? 1 : 0);
+				case "<":
+					return new ASTExp((eval(exp.operando1).valor < eval(exp.operando2).valor)? 1 : 0);
+				case "=":
+					return new ASTExp((eval(exp.operando1).valor == eval(exp.operando2).valor)? 1 : 0);
+				case ">=":
+					return new ASTExp((eval(exp.operando1).valor >= eval(exp.operando2).valor)? 1 : 0);
+				case "<=":
+					return new ASTExp((eval(exp.operando1).valor <= eval(exp.operando2).valor)? 1 : 0);
+				case "!=":
+					return new ASTExp((eval(exp.operando1).valor != eval(exp.operando2).valor)? 1 : 0);
+			}
 		}
 
 

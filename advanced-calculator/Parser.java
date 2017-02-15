@@ -123,7 +123,6 @@ public class Parser {
 		Expect(3);
 		Expect(2);
 		String identificador = t.val;
-		System.out.println(identificador);
 		ArrayList<String> paramNames;
 		
 		if (la.kind == 4) {
@@ -308,6 +307,15 @@ public class Parser {
 		String valorVariavel = t.val; 
 		if (la.kind == 4) {
 			Get();
+			varFunc = new ASTExp();
+			varFunc.tipo = "CHAMADA_FUNCAO";
+			varFunc.variavel = aci.escopoAtual.buscar(valorVariavel);
+			if (varFunc.variavel == null) {
+			System.out.println(" Error: '" + valorVariavel + "' nao definido.");
+			} else if (varFunc.variavel.tipo != "FUNCAO") {
+			//System.out.println(" Error: '" + id + "' nao nomeia uma variavel.");
+			}
+			
 			params = Params();
 			Expect(5);
 		} else if (StartOf(3)) {
@@ -336,10 +344,10 @@ public class Parser {
 		ifCond.condicao = condicao; 
 		Expect(17);
 		exp = Exp();
-		ifCond.expressaoThen = exp; 
+		ifCond.condicaoThen = exp; 
 		Expect(18);
 		exp = Exp();
-		ifCond.expressaoElse = exp; 
+		ifCond.condicaoElse = exp; 
 		return ifCond;
 	}
 
@@ -391,40 +399,50 @@ public class Parser {
 		
 		exp = Exp();
 		expl.operando1 = exp; 
-		OpRel();
+		operacao = OpRel();
+		expl.operacao = operacao; 
 		exp = Exp();
 		expl.operando2 = exp; 
 		return expl;
 	}
 
-	void OpRel() {
+	String  OpRel() {
+		String  operacao;
+		operacao = ""; 
 		switch (la.kind) {
 		case 19: {
 			Get();
+			operacao = t.val; 
 			break;
 		}
 		case 20: {
 			Get();
+			operacao = t.val; 
 			break;
 		}
 		case 21: {
 			Get();
+			operacao = t.val; 
 			break;
 		}
 		case 22: {
 			Get();
+			operacao = t.val; 
 			break;
 		}
 		case 6: {
 			Get();
+			operacao = t.val; 
 			break;
 		}
 		case 23: {
 			Get();
+			operacao = t.val; 
 			break;
 		}
 		default: SynErr(30); break;
 		}
+		return operacao;
 	}
 
 

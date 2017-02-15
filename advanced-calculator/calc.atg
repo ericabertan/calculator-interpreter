@@ -44,7 +44,6 @@ PRODUCTIONS
   =
 	"def" ident									(.
 																String identificador = t.val;
-																System.out.println(identificador);
 																ArrayList<String> paramNames;
 															.)
 	(
@@ -212,7 +211,19 @@ PRODUCTIONS
 																	ArrayList<ASTExp> params;
 	 															.)
 	= ident 											(. String valorVariavel = t.val; .)
-	( "(" Params<out params> ")"
+	(
+	"("														(.
+																	varFunc = new ASTExp();
+																	varFunc.tipo = "CHAMADA_FUNCAO";
+																	varFunc.variavel = aci.escopoAtual.buscar(valorVariavel);
+																	if (varFunc.variavel == null) {
+																		System.out.println(" Error: '" + valorVariavel + "' nao definido.");
+																	} else if (varFunc.variavel.tipo != "FUNCAO") {
+																		//System.out.println(" Error: '" + id + "' nao nomeia uma variavel.");
+																	}
+																.)
+	Params<out params>
+	")"
 	| 														(.
 																	varFunc = new ASTExp();
 																	varFunc.tipo = "VARIAVEL";
@@ -243,8 +254,8 @@ PRODUCTIONS
 															.)
 	=
 	"if" ExpL<out condicao>			(. ifCond.condicao = condicao; .)
-	"then" Exp<out exp>					(. ifCond.expressaoThen = exp; .)
-	"else" Exp<out exp>					(. ifCond.expressaoElse = exp; .)
+	"then" Exp<out exp>					(. ifCond.condicaoThen = exp; .)
+	"else" Exp<out exp>					(. ifCond.condicaoElse = exp; .)
 	.
 	// ----------------------------------------
 	ExpL<out ASTExp expl> 			(.
@@ -255,10 +266,17 @@ PRODUCTIONS
 															.)
 	=
 	Exp<out exp>								(. expl.operando1 = exp; .)
-	OpRel/*<out operacao>					(. expl.operacao = operacao; .)*/
+	OpRel<out operacao>					(. expl.operacao = operacao; .)
 	Exp<out exp>								(. expl.operando2 = exp; .)
 	.
 	// ----------------------------------------
-	OpRel = ">" | ">=" | "<" | "&<=" | "=" | "!=".
+	OpRel<out String operacao> 	(. operacao = ""; .)
+	= ">"												(. operacao = t.val; .)
+	| ">="											(. operacao = t.val; .)
+	| "<"												(. operacao = t.val; .)
+	| "&<="											(. operacao = t.val; .)
+	| "="												(. operacao = t.val; .)
+	| "!="											(. operacao = t.val; .)
+	.
 
 END AdvCalc.
