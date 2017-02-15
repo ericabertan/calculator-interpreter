@@ -35,7 +35,7 @@ PRODUCTIONS
 	= Def<out exp>							(. v = exp; .)
 	| Exp<out exp> 							(. v = exp; .)
 	.
-
+	// ----------------------------------------
 	Def<out ASTExp def> 				(.
 																Objeto objeto = null;
 																def = new ASTExp();
@@ -44,23 +44,49 @@ PRODUCTIONS
   =
 	"def" ident									(.
 																String identificador = t.val;
-																ArrayList<ASTExp> listaParametros;
+																System.out.println(identificador);
+																ArrayList<String> paramNames;
 															.)
 	(
-	"(" 												// Definir funcao e escopo
-	ParamNames
+	"("
+															(.
+															def.tipo = "DEFINICAO_FUNCAO";
+															objeto = Objeto.addFuncao(identificador);
+															def.funcao = objeto;
+															aci.escopoAtual.inserir(objeto);
+															objeto.escopo.escopoSuperior = aci.escopoAtual;
+															aci.escopoAtual = objeto.escopo;
+.)
+	ParamNames<out paramNames>	(. objeto.paramNames = paramNames; .)
 	")"
-	|
+	|														(.
+																def.tipo = "DEFINICAO_VARIAVEL";
+																objeto = Objeto.addVariavel(identificador);
+																def.variavel = objeto;
+																//System.out.println(objeto.identificador + " = " + objeto.valor);
+																aci.escopoAtual.inserir(objeto);
+															.)
 	)
 	"="
 	Exp<out exp>							(.
 															objeto.expressao = exp;
 															if(objeto.tipo == "FUNCAO"){
-																//aci = aci.escopoAtual.escopoSuperior;
+																aci.escopoAtual = aci.escopoAtual.escopoSuperior;
 															}
 														.)
 	.
-	ParamNames = ident { "," ident }.
+	// ----------------------------------------
+	ParamNames<out ArrayList<String> paramNames>	(. paramNames = new ArrayList<String>(); .)
+	= ident										(.
+															aci.escopoAtual.inserir(Objeto.addVariavel(t.val));
+															paramNames.add(t.val);
+														.)
+	{ "," ident								(.
+															aci.escopoAtual.inserir(Objeto.addVariavel(t.val));
+															paramNames.add(t.val);
+														.)
+ 	}
+	.
 	// ----------------------------------------
 	Exp<out ASTExp exp>				(.
 															exp = null;
@@ -74,7 +100,7 @@ PRODUCTIONS
 															operando = exp;
 															exp = new ASTExp();
 															ASTExp node = new ASTExp();
-															node.tipo = "OPERAÇÃO";
+															node.tipo = "OPERACAO";
 															node.operando1 = operando;
 															t = node;
 														.)
@@ -186,14 +212,26 @@ PRODUCTIONS
 																	ArrayList<ASTExp> params;
 	 															.)
 	= ident 											(. String valorVariavel = t.val; .)
-	( "(" Params<out params> ")" | ).
+	( "(" Params<out params> ")"
+	| 														(.
+																	varFunc = new ASTExp();
+																	varFunc.tipo = "DEFINICAO_VARIAVEL";
+																	varFunc.variavel = aci.escopoAtual.buscar(valorVariavel);
+																	if (varFunc.variavel == null) {
+																		System.out.println(" Error: '" + valorVariavel + "' nao definido.");
+																	} else if (varFunc.variavel.tipo != "DEFINICAO_VARIAVEL") {
+																		//System.out.println(" Error: '" + id + "' nao nomeia uma variavel.");
+																	}
+																.)
+	)
+	.
 	// ----------------------------------------
 	Params<out ArrayList<ASTExp> parametros>	(.
 																							parametros = new ArrayList<ASTExp>();
 																							ASTExp exp;
 																						.)
-	= Exp<out exp>							(. parametros.add(exp); .)
-	{ "," Exp<out exp>					(. parametros.add(exp); .)
+	= Exp<out exp>														(. parametros.add(exp); .)
+	{ "," Exp<out exp>												(. parametros.add(exp); .)
 	}
 	.
 	// ----------------------------------------

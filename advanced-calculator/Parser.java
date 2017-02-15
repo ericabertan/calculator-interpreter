@@ -123,19 +123,34 @@ public class Parser {
 		Expect(3);
 		Expect(2);
 		String identificador = t.val;
-		ArrayList<ASTExp> listaParametros;
+		System.out.println(identificador);
+		ArrayList<String> paramNames;
 		
 		if (la.kind == 4) {
 			Get();
-			ParamNames();
+			def.tipo = "DEFINICAO_FUNCAO";
+			objeto = Objeto.addFuncao(identificador);
+			def.funcao = objeto;
+			aci.escopoAtual.inserir(objeto);
+			objeto.escopo.escopoSuperior = aci.escopoAtual;
+			aci.escopoAtual = objeto.escopo;
+			
+			paramNames = ParamNames();
+			objeto.paramNames = paramNames; 
 			Expect(5);
 		} else if (la.kind == 6) {
+			def.tipo = "DEFINICAO_VARIAVEL";
+			objeto = Objeto.addVariavel(identificador);
+			def.variavel = objeto;
+			//System.out.println(objeto.identificador + " = " + objeto.valor);
+			aci.escopoAtual.inserir(objeto);
+			
 		} else SynErr(26);
 		Expect(6);
 		exp = Exp();
 		objeto.expressao = exp;
 		if(objeto.tipo == "FUNCAO"){
-		//aci = aci.escopoAtual.escopoSuperior;
+		aci.escopoAtual = aci.escopoAtual.escopoSuperior;
 		}
 		
 		return def;
@@ -153,7 +168,7 @@ public class Parser {
 			operando = exp;
 			exp = new ASTExp();
 			ASTExp node = new ASTExp();
-			node.tipo = "OPERAÃÃO";
+			node.tipo = "OPERACAO";
 			node.operando1 = operando;
 			t = node;
 			
@@ -174,12 +189,21 @@ public class Parser {
 		return exp;
 	}
 
-	void ParamNames() {
+	ArrayList<String>  ParamNames() {
+		ArrayList<String>  paramNames;
+		paramNames = new ArrayList<String>(); 
 		Expect(2);
+		aci.escopoAtual.inserir(Objeto.addVariavel(t.val));
+		paramNames.add(t.val);
+		
 		while (la.kind == 7) {
 			Get();
 			Expect(2);
+			aci.escopoAtual.inserir(Objeto.addVariavel(t.val));
+			paramNames.add(t.val);
+			
 		}
+		return paramNames;
 	}
 
 	ASTExp  T() {
@@ -287,6 +311,15 @@ public class Parser {
 			params = Params();
 			Expect(5);
 		} else if (StartOf(3)) {
+			varFunc = new ASTExp();
+			varFunc.tipo = "VARIAVEL";
+			varFunc.variavel = aci.escopoAtual.buscar(valorVariavel);
+			if (varFunc.variavel == null) {
+			System.out.println(" Error: '" + valorVariavel + "' nao definido.");
+			} else if (varFunc.variavel.tipo != "VARIAVEL") {
+			//System.out.println(" Error: '" + id + "' nao nomeia uma variavel.");
+			}
+			
 		} else SynErr(29);
 		return varFunc;
 	}
